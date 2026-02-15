@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>車両点検チェックリスト（修正版）</title>
+    <title>車両点検チェックリスト</title>
     <style>
         :root {
-            --success-color: #00ff00; /* 鮮やかな緑 */
-            --danger-color: #ff0000;  /* 鮮やかな赤 */
-            --bg-color: #000000;      /* 真っ黒 */
-            --text-color: #ffffff;    /* 真っ白 */
-            --header-height: 60px;    /* ヘッダーの高さ */
-            --footer-height: 160px;   /* フッターの仮高さ */
+            --success-color: #00ff00;
+            --danger-color: #ff0000;
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --header-height: 60px;
+            --footer-height: 120px; /* 初期値 */
         }
 
-        /* リセットと基本設定 */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -28,11 +27,11 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             width: 100vw;
             height: 100vh;
-            overflow: hidden; /* 画面全体のスクロール禁止 */
-            position: fixed;  /* iOSでのバウンス防止 */
+            overflow: hidden;
+            position: fixed;
         }
 
-        /* 1. ヘッダー（上部に絶対固定） */
+        /* ヘッダー */
         header {
             position: fixed;
             top: 0;
@@ -66,22 +65,22 @@
         .progress-bar {
             height: 100%;
             background-color: var(--success-color);
-            width: 0%;
-            transition: width 0.2s;
+            width: 0%; /* JSで更新されるが初期値は0 */
+            transition: width 0.1s;
         }
 
-        /* 2. メインエリア（ヘッダーとフッターの間でスクロール） */
+        /* メインエリア */
         main {
             position: absolute;
             top: var(--header-height);
-            bottom: var(--footer-height); /* フッターの高さ分空ける */
+            bottom: var(--footer-height);
             left: 0;
             width: 100%;
-            overflow-y: auto; /* 内容が多い時だけスクロール */
+            overflow-y: auto;
             padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center; /* 常に画面中央に文字を置く */
+            align-items: center;
         }
 
         .card {
@@ -90,16 +89,15 @@
             text-align: center;
         }
 
-        /* テキストの視認性を強制的に確保 */
+        /* テキスト表示 */
         .check-item-text {
-            color: #ffffff !important; /* 強制的に白 */
-            font-size: 24px;
+            color: #ffffff;
+            font-size: 26px;
             font-weight: bold;
-            line-height: 1.6;
-            word-wrap: break-word;
+            line-height: 1.4;
         }
 
-        /* 3. フッター（下部に絶対固定・iPhoneのバー対策済み） */
+        /* フッター */
         footer {
             position: fixed;
             bottom: 0;
@@ -108,23 +106,14 @@
             background-color: var(--bg-color);
             z-index: 100;
             border-top: 1px solid #333;
-            
-            /* レイアウト */
             display: grid;
-            grid-template-columns: 1fr 2fr; /* 左1 : 右2 */
+            grid-template-columns: 1fr 2fr;
             gap: 10px;
             padding: 15px 15px 20px 15px;
-
-            /* iPhone X以降のホームバー対策（重要） */
-            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-bottom: max(20px, env(safe-area-inset-bottom)); /* iPhoneバー対策 */
         }
 
-        /* フッターの高さをJSで計算するためにID付与 */
-        #action-buttons {
-            /* 初期値 */
-        }
-
-        /* ボタン共通スタイル */
+        /* ボタン */
         button {
             background-color: #000000;
             border-radius: 8px;
@@ -133,91 +122,43 @@
             cursor: pointer;
             padding: 15px 0;
             color: #ffffff;
-            transition: transform 0.1s;
         }
 
         button:active {
-            transform: scale(0.96);
             background-color: #222;
         }
 
-        /* NGボタン（赤枠・黒背景） */
         .btn-ng {
             border: 2px solid var(--danger-color);
             color: var(--danger-color);
             grid-column: 1;
         }
 
-        /* OKボタン（緑枠・黒背景） */
         .btn-ok {
             border: 2px solid var(--success-color);
             color: var(--success-color);
             grid-column: 2;
         }
 
-        /* 戻るボタン（全幅） */
         .btn-back {
             grid-column: 1 / -1;
             border: 1px solid #666;
             color: #aaaaaa;
             padding: 10px 0;
             font-size: 14px;
-            margin-top: 5px;
         }
 
         /* 結果画面 */
         .result-container {
             width: 100%;
             padding-bottom: 50px;
-            color: #ffffff;
         }
-
-        .result-title {
-            color: var(--success-color);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .ng-list {
-            border: 1px solid var(--danger-color);
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 8px;
-            text-align: left;
-        }
-
-        .ng-list h3 {
-            color: var(--danger-color);
-            margin-bottom: 10px;
-        }
-
-        .ng-list ul {
-            list-style: none;
-        }
-
-        .ng-list li {
-            border-bottom: 1px solid #333;
-            padding: 8px 0;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .important-note {
-            border: 1px solid #ffcc00;
-            color: #ffcc00;
-            padding: 10px;
-            font-size: 13px;
-            margin-top: 20px;
-            border-radius: 5px;
-            text-align: left;
-        }
-        
-        .btn-restart {
-            border: 1px solid #fff;
-            margin-top: 20px;
-        }
+        .result-title { text-align: center; margin-bottom: 20px; font-size: 24px; }
+        .ng-list { border: 1px solid var(--danger-color); padding: 15px; margin: 20px 0; border-radius: 8px; text-align: left; }
+        .ng-list li { border-bottom: 1px solid #333; padding: 8px 0; list-style: none; }
+        .hidden { display: none !important; }
+        .important-note { border: 1px solid #ffcc00; color: #ffcc00; padding: 10px; font-size: 13px; margin-top: 20px; border-radius: 5px; text-align: left; }
+        .btn-restart { border: 1px solid #fff; margin-top: 20px; width: 100%; }
 
     </style>
 </head>
@@ -225,36 +166,33 @@
 
     <header id="app-header">
         <div class="progress-info">
-            <span id="status-text">1 / 80</span>
-            <span style="font-size:10px; opacity:0.7;">点検中</span>
+            <span id="status-text">1 / 82</span>
+            <span>点検中</span>
         </div>
         <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
+            <div class="progress-bar" id="progress-bar" style="width: 1%;"></div>
         </div>
     </header>
 
     <main id="main-content">
         <div class="card" id="card-area">
             <div class="check-item-text" id="item-text">
-                読み込み中...
+                外回り点検を開始(右前タイヤから反時計回り)
             </div>
         </div>
 
         <div class="result-container hidden" id="result-area">
             <h2 class="result-title" id="result-header-text">点検完了</h2>
             <div id="result-message"></div>
-            
             <div id="ng-section" class="ng-list hidden">
-                <h3>⚠️ NG項目リスト</h3>
+                <h3 style="color:var(--danger-color)">⚠️ NG項目リスト</h3>
                 <ul id="ng-items-list"></ul>
             </div>
-
             <div class="important-note">
                 <strong>【重要】</strong><br>
                 NG項目がある場合は、TCOMへ連絡し指示を仰いでください。<br>
                 終了ボタンを押す前に、忘れ物がないか再確認してください。
             </div>
-
             <button class="btn-restart" onclick="restartApp()">最初から点検する</button>
         </div>
     </main>
@@ -266,210 +204,201 @@
     </footer>
 
     <script>
-        // フッターの高さを動的に取得してメインエリアの余白を調整する
-        function adjustLayout() {
-            const footer = document.getElementById('action-buttons');
-            const main = document.getElementById('main-content');
-            if(footer && main) {
-                const h = footer.offsetHeight;
-                main.style.bottom = h + 'px';
-            }
-        }
-        window.addEventListener('resize', adjustLayout);
-        window.addEventListener('load', adjustLayout);
-
-        [cite_start]// データリスト  [cite: 1-82]
+        [cite_start]// PDFの内容  [cite: 1-82]
         const checkList = [
-            "外回り点検を開始 (右前タイヤから反時計回り)",
+            "外回り点検を開始(右前タイヤから反時計回り)",
             "TMAで指定空気圧をチェック",
-            "右前タイヤ: 製造年週、亀裂、損傷、残溝、空気圧を確認しTMAに入力",
-            "フロント周り: ボディの傷や凹みなどの損傷をTMAと照合確認",
-            "左前タイヤ: 製造年週、亀裂、損傷、残溝、空気圧を確認しTMAに入力",
-            "左サイド: ボディの傷や凹みなどの損傷をTMAと照合確認",
-            "左後タイヤ: 製造年週、亀裂、損傷、残溝、空気圧を確認しTMAに入力",
-            "リア周り: ボディの傷や凹みなどの損傷をTMAと照合確認",
+            "右前タイヤ 製造年週、亀裂、損傷など、残溝、空気圧をチェックしTMAに入力",
+            "フロント周りのボディの傷や凹みなどの損傷をTMAと照合しながら確認",
+            "左前タイヤ 製造年週、亀裂、損傷など、残溝、空気圧をチェックしTMAに入力",
+            "左サイドのボディの傷や凹みなどの損傷をTMAと照合しながら確認",
+            "左後タイヤ 製造年週、亀裂、損傷など、残溝、空気圧をチェックしTMAに入力",
+            "リア周りのボディの傷や凹みなどの損傷をTMAと照合しながら確認",
             "ロゴステッカー、TOUCHシールの剥がれ・劣化を確認",
-            "右後タイヤ: 製造年週、亀裂、損傷、残溝、空気圧を確認しTMAに入力",
-            "右サイド: ボディの傷や凹みなどの損傷をTMAと照合確認",
+            "右後タイヤ 製造年週、亀裂、損傷など、残溝、空気圧をチェックしTMAに入力",
+            "左サイドのボディの傷や凹みなどの損傷をTMAと照合しながら確認", // PDFページ1の最後
             "空気圧が規定値未満のタイヤにエアー補充",
             "TOUCHにカードをかざして解錠する",
             "車内点検を開始",
             "運転席ドアポケット: 消臭剤の有無・残量",
-            "助手席ドアポケット: ゴミ袋、除菌シートの有無・残量",
+            "助手席ドアポケット:ゴミ袋、除菌シートの有無・残量",
             "グローブボックスからキーを取り出す",
             "発煙筒の期限をTMAと照合",
             "取扱説明書・メンテナンスノート・整備手帳の有無",
             "車検証・自賠責の車体番号が一致することを確認",
-            "車検証などをグローブボックスに戻し、助手席を一番前へ",
+            "車検証などをグローブボックスに戻し助手席を一番前へスライドさせる",
             "自賠責保険・車検ステッカー・点検シールの有効期限",
-            "車内の案内シール (禁煙、ゲート物件等) の状態",
+            "車内の案内シール(禁煙、ゲート物件等)の状態",
             "ACCをONにする",
             "ウォッシャー液噴射・ワイパー作動・払拭状態・ゴム劣化",
-            "ドライブレコーダーのランプ点灯 (緑/オレンジが正常)",
-            "全パワーウィンドウの作動確認",
-            "ETCカードが挿入されていないこと (目視確認)",
-            "電源ソケット (シガーソケット) の通電",
+            "ドライブレコーダーのランプ点灯(緑/オレンジが正常)",
+            "全パワーウィンドウの作動",
+            "ETC カードが挿入されていないこと(目視確認)",
+            "電源ソケット(シガーソケット)の通電",
             "ナビのオートパーキング履歴を削除",
             "ACCをOFFにする",
             "ボンネット及び給油口のオープナーを作動させる",
             "ボンネット内点検を開始",
             "ブレーキフルード液量",
             "ラジエター冷却水液量",
-            "ウォッシャー液量 (規定量まで補充)",
+            "ウォッシャー液量(規定量まで補充)",
             "エンジンオイルの量及び汚れ",
             "車内清掃を開始",
-            "運転席周りの清掃 (内窓、掃除機、ブラッシング)",
-            "後部座席の清掃 (内窓、掃除機、ブラッシング)",
-            "トランクの清掃 (内窓、掃除機、ブラッシング)",
+            "運転席周りの清掃(内窓、掃除機、ブラッシング)",
+            "後部座席の清掃(内窓、掃除機、ブラッシング)",
+            "トランクの清掃(内窓、掃除機、ブラッシング)",
             "トランク内備品を確認",
-            "清掃キット (コロコロ、除菌シート) の有無",
+            "清掃キット(コロコロ、除菌シート)の有無",
             "三角停止表示板の有無・破損",
             "ジャッキ・車載工具の有無",
-            "パンク修理キットの有無・有効期限 (TMAと照合)",
+            "パンク修理キットの有無・有効期限(TMAと照合)",
             "スペアタイヤの有無・空気圧・亀裂・損傷",
             "ジュニアシートの有無",
-            "助手席周りの清掃 (内窓、掃除機、ブラッシング)",
-            "仕上げ拭き (ナビ画面、バックミラー、フロントガラス内側)",
-            "備品の補充 (消臭剤、ゴミ袋、除菌シート等) を行う",
+            "助手席周りの清掃(内窓、掃除機、ブラッシング)",
+            "仕上げ拭き(ナビ画面、バックミラー、フロントガラス内側)",
+            "備品の補充(消臭剤、ゴミ袋、除菌シート等)を行う",
             "エンジン始動後の最終点検を開始",
             "エンジンを始動し、始動状態・異音・電圧を確認",
             "始動後のブレーキの踏みしろ・効きを確認",
             "メーター内の全チェックランプが消灯することを確認",
             "シートベルトのゆるみ、警告灯の作動・消灯を確認",
-            "安全装置 (コーナーセンサー、ブレーキサポート等) をONにする",
-            "エアコンの作動 (冷風・異臭) を確認",
+            "安全装置(コーナーセンサー、ブレーキサポート等)をONにする",
+            "エアコンの作動(冷風・異臭)を確認",
             "灯火類・ブレーキランプの確認",
             "ライト、ハザードを点灯させ、ギアをバック(R)に入れる",
             "バックモニターを確認",
             "駐車ブレーキの引きしろを確認",
             "エンジンを OFF または ACC にする",
-            "フロント外窓を拭く＋ライト・ハザード・レンズ損傷確認",
+            "フロント外窓を拭きながらヘッドライト、ハザードの点灯・レンズ損傷を確認",
             "左側面の外窓を拭く",
-            "リア外窓を拭く＋テール・バック・ハザード・レンズ損傷確認",
+            "リア外窓を拭きながらテールランプ、バックランプ、ハザードの点灯・レンズ損傷を確認",
             "車に戻り、ライトとハザードをOFFにする",
             "フットブレーキを固定具で保持する",
             "両後方でブレーキランプの点灯を確認",
-            "車に戻り、固定具を外し、ギアをパーキング(P)に戻す",
+            "車に戻り、固定具を外し、ギアをパーキング (P)に戻す",
             "最終報告と施錠を開始",
             "運転席にて TMAに必要な情報を入力する",
-            "ODOメーター (総走行距離) 入力",
-            "給油カードの番号・有効期限 (照らし合わせ)",
+            "ODO メーター(総走行距離)",
+            "給油カードの番号・有効期限(照らし合わせ)",
             "忘れ物があればTMAに入力する",
             "グローブボックス内にキーを戻す",
-            "ルームランプスイッチを「DOOR」の位置に設定",
+            "ルームランプスイッチを「DOOR」の位置に設定する",
             "専用カードで施錠する",
-            "【最重要】ドアノブを物理的に引き、施錠を最終確認",
-            "駐車時確認: バリアポップを設置",
+            "【最重要】ドアノブを物理的に引き、施錠を最終確認する",
+            "駐車時確認:バリアポップを設置",
             "TMAでの作業終了報告をもって、業務完了とする"
         ];
 
         let currentIndex = 0;
         let ngItems = [];
 
-        // DOM要素
-        const elements = {
-            progressBar: document.getElementById('progress-bar'),
-            statusText: document.getElementById('status-text'),
-            itemText: document.getElementById('item-text'),
-            cardArea: document.getElementById('card-area'),
-            resultArea: document.getElementById('result-area'),
+        // 要素取得
+        const el = {
+            bar: document.getElementById('progress-bar'),
+            status: document.getElementById('status-text'),
+            text: document.getElementById('item-text'),
+            card: document.getElementById('card-area'),
+            result: document.getElementById('result-area'),
             header: document.getElementById('app-header'),
             footer: document.getElementById('action-buttons'),
-            ngSection: document.getElementById('ng-section'),
             ngList: document.getElementById('ng-items-list'),
-            resultMsg: document.getElementById('result-message'),
-            resultHeader: document.getElementById('result-header-text')
+            ngSec: document.getElementById('ng-section'),
+            resMsg: document.getElementById('result-message'),
+            resHead: document.getElementById('result-header-text'),
+            main: document.getElementById('main-content')
         };
 
-        function init() {
-            render();
-            adjustLayout(); // 初期レイアウト調整
+        // フッター高さ調整
+        function adjustLayout() {
+            if(el.footer && el.main) {
+                el.main.style.bottom = el.footer.offsetHeight + 'px';
+            }
         }
+        window.addEventListener('load', adjustLayout);
+        window.addEventListener('resize', adjustLayout);
 
+        // 描画更新
         function render() {
-            // 進捗
-            const progress = ((currentIndex + 1) / checkList.length) * 100;
-            elements.progressBar.style.width = `${progress}%`;
-            elements.statusText.textContent = `${currentIndex + 1} / ${checkList.length}`;
+            const current = currentIndex + 1;
+            const total = checkList.length;
+            
+            // 進捗バー
+            const pct = (current / total) * 100;
+            el.bar.style.width = pct + '%';
+            el.status.textContent = current + ' / ' + total;
 
-            // テキスト表示（強制的に白文字）
-            elements.itemText.innerHTML = checkList[currentIndex];
+            // テキスト
+            el.text.textContent = checkList[currentIndex];
         }
 
-        function handleOK() {
-            if (currentIndex < checkList.length - 1) {
+        // ボタン操作
+        window.handleOK = function() {
+            if(currentIndex < checkList.length - 1) {
                 currentIndex++;
                 render();
             } else {
-                finishCheck();
+                finish();
             }
-        }
+        };
 
-        function handleNG() {
-            if (!ngItems.includes(currentIndex)) {
+        window.handleNG = function() {
+            if(!ngItems.includes(currentIndex)) {
                 ngItems.push(currentIndex);
             }
-            if (currentIndex < checkList.length - 1) {
-                currentIndex++;
-                render();
-            } else {
-                finishCheck();
-            }
-        }
+            handleOK();
+        };
 
-        function handleBack() {
-            if (currentIndex > 0) {
-                // 戻る時は直前のNG履歴を消す（再判定のため）
+        window.handleBack = function() {
+            if(currentIndex > 0) {
                 const prev = currentIndex - 1;
-                ngItems = ngItems.filter(i => i !== prev);
-                
+                ngItems = ngItems.filter(i => i !== prev); // 戻ったらNG解除
                 currentIndex--;
                 render();
             }
-        }
+        };
 
-        function finishCheck() {
-            // 表示切り替え
-            elements.cardArea.classList.add('hidden');
-            elements.header.classList.add('hidden');
-            elements.footer.classList.add('hidden');
-            elements.resultArea.classList.remove('hidden');
-
-            // NGリスト生成
-            elements.ngList.innerHTML = '';
-            
-            if (ngItems.length > 0) {
-                elements.resultHeader.style.color = 'var(--danger-color)';
-                elements.resultHeader.textContent = "確認事項あり";
-                elements.resultMsg.innerHTML = '<p style="font-size:18px; text-align:center;">NG項目が報告されています。<br>以下の内容を確認してください。</p>';
-                elements.ngSection.classList.remove('hidden');
-
-                ngItems.forEach(idx => {
-                    const li = document.createElement('li');
-                    li.textContent = `[No.${idx + 1}] ${checkList[idx]}`;
-                    elements.ngList.appendChild(li);
-                });
-            } else {
-                elements.resultHeader.style.color = 'var(--success-color)';
-                elements.resultHeader.textContent = "業務完了";
-                elements.resultMsg.innerHTML = '<p style="font-size:20px; text-align:center;">異常はありませんでした。<br>お疲れ様でした！</p>';
-                elements.ngSection.classList.add('hidden');
-            }
-        }
-
-        function restartApp() {
+        window.restartApp = function() {
             if(confirm("最初からやり直しますか？")) {
                 currentIndex = 0;
                 ngItems = [];
-                elements.cardArea.classList.remove('hidden');
-                elements.header.classList.remove('hidden');
-                elements.footer.classList.remove('hidden');
-                elements.resultArea.classList.add('hidden');
+                el.card.classList.remove('hidden');
+                el.header.classList.remove('hidden');
+                el.footer.classList.remove('hidden');
+                el.result.classList.add('hidden');
                 render();
+            }
+        };
+
+        function finish() {
+            el.card.classList.add('hidden');
+            el.header.classList.add('hidden');
+            el.footer.classList.add('hidden');
+            el.result.classList.remove('hidden');
+
+            el.ngList.innerHTML = '';
+            
+            if(ngItems.length > 0) {
+                el.resHead.textContent = "確認事項あり";
+                el.resHead.style.color = "var(--danger-color)";
+                el.resMsg.innerHTML = '<p style="text-align:center; margin-bottom:10px;">NG項目があります。</p>';
+                el.ngSec.classList.remove('hidden');
+                
+                ngItems.forEach(idx => {
+                    const li = document.createElement('li');
+                    li.textContent = `[${idx+1}] ${checkList[idx]}`;
+                    el.ngList.appendChild(li);
+                });
+            } else {
+                el.resHead.textContent = "業務完了";
+                el.resHead.style.color = "var(--success-color)";
+                el.resMsg.innerHTML = '<p style="text-align:center;">異常はありません。</p>';
+                el.ngSec.classList.add('hidden');
             }
         }
 
-        init();
+        // 初期実行（ただしHTMLに直接書いているので見た目は既に完成している）
+        adjustLayout();
+        // render(); // HTMLとJSの初期値が同じなら呼ばなくても良いが、念のため呼ぶ
     </script>
 </body>
 </html>
