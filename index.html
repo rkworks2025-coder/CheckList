@@ -11,7 +11,7 @@
             --bg-color: #000000;
             --text-color: #ffffff;
             --header-height: 60px;
-            --footer-height: 120px; /* 初期値 */
+            --footer-height: 120px;
         }
 
         * {
@@ -65,7 +65,7 @@
         .progress-bar {
             height: 100%;
             background-color: var(--success-color);
-            width: 0%; /* JSで更新されるが初期値は0 */
+            width: 1%; /* 初期値 */
             transition: width 0.1s;
         }
 
@@ -89,7 +89,6 @@
             text-align: center;
         }
 
-        /* テキスト表示 */
         .check-item-text {
             color: #ffffff;
             font-size: 26px;
@@ -110,10 +109,9 @@
             grid-template-columns: 1fr 2fr;
             gap: 10px;
             padding: 15px 15px 20px 15px;
-            padding-bottom: max(20px, env(safe-area-inset-bottom)); /* iPhoneバー対策 */
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
         }
 
-        /* ボタン */
         button {
             background-color: #000000;
             border-radius: 8px;
@@ -170,7 +168,7 @@
             <span>点検中</span>
         </div>
         <div class="progress-container">
-            <div class="progress-bar" id="progress-bar" style="width: 1%;"></div>
+            <div class="progress-bar" id="progress-bar"></div>
         </div>
     </header>
 
@@ -198,14 +196,14 @@
     </main>
 
     <footer id="action-buttons">
-        <button class="btn-ng" onclick="handleNG()">NG</button>
-        <button class="btn-ok" onclick="handleOK()">OK / 次へ</button>
-        <button class="btn-back" onclick="handleBack()">1つ戻る</button>
+        <button class="btn-ng" onclick="onNgClick()">NG</button>
+        <button class="btn-ok" onclick="onOkClick()">OK / 次へ</button>
+        <button class="btn-back" onclick="onBackClick()">1つ戻る</button>
     </footer>
 
     <script>
-        [cite_start]// PDFの内容  [cite: 1-82]
-        const checkList = [
+        [cite_start]// PDFデータ  [cite: 1-82]
+        var checkList = [
             "外回り点検を開始(右前タイヤから反時計回り)",
             "TMAで指定空気圧をチェック",
             "右前タイヤ 製造年週、亀裂、損傷など、残溝、空気圧をチェックしTMAに入力",
@@ -216,7 +214,7 @@
             "リア周りのボディの傷や凹みなどの損傷をTMAと照合しながら確認",
             "ロゴステッカー、TOUCHシールの剥がれ・劣化を確認",
             "右後タイヤ 製造年週、亀裂、損傷など、残溝、空気圧をチェックしTMAに入力",
-            "左サイドのボディの傷や凹みなどの損傷をTMAと照合しながら確認", // PDFページ1の最後
+            "左サイドのボディの傷や凹みなどの損傷をTMAと照合しながら確認",
             "空気圧が規定値未満のタイヤにエアー補充",
             "TOUCHにカードをかざして解錠する",
             "車内点検を開始",
@@ -289,116 +287,120 @@
             "TMAでの作業終了報告をもって、業務完了とする"
         ];
 
-        let currentIndex = 0;
-        let ngItems = [];
+        var currentIndex = 0;
+        var ngItems = [];
 
-        // 要素取得
-        const el = {
-            bar: document.getElementById('progress-bar'),
-            status: document.getElementById('status-text'),
-            text: document.getElementById('item-text'),
-            card: document.getElementById('card-area'),
-            result: document.getElementById('result-area'),
-            header: document.getElementById('app-header'),
-            footer: document.getElementById('action-buttons'),
-            ngList: document.getElementById('ng-items-list'),
-            ngSec: document.getElementById('ng-section'),
-            resMsg: document.getElementById('result-message'),
-            resHead: document.getElementById('result-header-text'),
-            main: document.getElementById('main-content')
-        };
-
-        // フッター高さ調整
-        function adjustLayout() {
-            if(el.footer && el.main) {
-                el.main.style.bottom = el.footer.offsetHeight + 'px';
-            }
-        }
-        window.addEventListener('load', adjustLayout);
-        window.addEventListener('resize', adjustLayout);
-
-        // 描画更新
+        // 画面更新関数
         function render() {
-            const current = currentIndex + 1;
-            const total = checkList.length;
+            var total = checkList.length;
+            var current = currentIndex + 1;
             
             // 進捗バー
-            const pct = (current / total) * 100;
-            el.bar.style.width = pct + '%';
-            el.status.textContent = current + ' / ' + total;
-
-            // テキスト
-            el.text.textContent = checkList[currentIndex];
+            var bar = document.getElementById('progress-bar');
+            if(bar) bar.style.width = (current / total * 100) + '%';
+            
+            // ステータス
+            var status = document.getElementById('status-text');
+            if(status) status.textContent = current + ' / ' + total;
+            
+            // メインテキスト
+            var text = document.getElementById('item-text');
+            if(text) text.textContent = checkList[currentIndex];
         }
 
-        // ボタン操作
-        window.handleOK = function() {
+        // OKボタン
+        function onOkClick() {
             if(currentIndex < checkList.length - 1) {
                 currentIndex++;
                 render();
             } else {
-                finish();
-            }
-        };
-
-        window.handleNG = function() {
-            if(!ngItems.includes(currentIndex)) {
-                ngItems.push(currentIndex);
-            }
-            handleOK();
-        };
-
-        window.handleBack = function() {
-            if(currentIndex > 0) {
-                const prev = currentIndex - 1;
-                ngItems = ngItems.filter(i => i !== prev); // 戻ったらNG解除
-                currentIndex--;
-                render();
-            }
-        };
-
-        window.restartApp = function() {
-            if(confirm("最初からやり直しますか？")) {
-                currentIndex = 0;
-                ngItems = [];
-                el.card.classList.remove('hidden');
-                el.header.classList.remove('hidden');
-                el.footer.classList.remove('hidden');
-                el.result.classList.add('hidden');
-                render();
-            }
-        };
-
-        function finish() {
-            el.card.classList.add('hidden');
-            el.header.classList.add('hidden');
-            el.footer.classList.add('hidden');
-            el.result.classList.remove('hidden');
-
-            el.ngList.innerHTML = '';
-            
-            if(ngItems.length > 0) {
-                el.resHead.textContent = "確認事項あり";
-                el.resHead.style.color = "var(--danger-color)";
-                el.resMsg.innerHTML = '<p style="text-align:center; margin-bottom:10px;">NG項目があります。</p>';
-                el.ngSec.classList.remove('hidden');
-                
-                ngItems.forEach(idx => {
-                    const li = document.createElement('li');
-                    li.textContent = `[${idx+1}] ${checkList[idx]}`;
-                    el.ngList.appendChild(li);
-                });
-            } else {
-                el.resHead.textContent = "業務完了";
-                el.resHead.style.color = "var(--success-color)";
-                el.resMsg.innerHTML = '<p style="text-align:center;">異常はありません。</p>';
-                el.ngSec.classList.add('hidden');
+                showResult();
             }
         }
 
-        // 初期実行（ただしHTMLに直接書いているので見た目は既に完成している）
-        adjustLayout();
-        // render(); // HTMLとJSの初期値が同じなら呼ばなくても良いが、念のため呼ぶ
+        // NGボタン
+        function onNgClick() {
+            if(ngItems.indexOf(currentIndex) === -1) {
+                ngItems.push(currentIndex);
+            }
+            onOkClick();
+        }
+
+        // 戻るボタン
+        function onBackClick() {
+            if(currentIndex > 0) {
+                var prev = currentIndex - 1;
+                // NGリストから削除
+                var idx = ngItems.indexOf(prev);
+                if(idx !== -1) {
+                    ngItems.splice(idx, 1);
+                }
+                currentIndex--;
+                render();
+            }
+        }
+
+        // 結果画面
+        function showResult() {
+            document.getElementById('card-area').classList.add('hidden');
+            document.getElementById('app-header').classList.add('hidden');
+            document.getElementById('action-buttons').classList.add('hidden');
+            document.getElementById('result-area').classList.remove('hidden');
+
+            var list = document.getElementById('ng-items-list');
+            list.innerHTML = '';
+            
+            var msg = document.getElementById('result-message');
+            var head = document.getElementById('result-header-text');
+            var sec = document.getElementById('ng-section');
+
+            if(ngItems.length > 0) {
+                head.textContent = "確認事項あり";
+                head.style.color = "var(--danger-color)";
+                msg.innerHTML = '<p style="text-align:center;">NG項目があります。</p>';
+                sec.classList.remove('hidden');
+                
+                for(var i=0; i<ngItems.length; i++) {
+                    var id = ngItems[i];
+                    var li = document.createElement('li');
+                    li.textContent = '[' + (id+1) + '] ' + checkList[id];
+                    list.appendChild(li);
+                }
+            } else {
+                head.textContent = "業務完了";
+                head.style.color = "var(--success-color)";
+                msg.innerHTML = '<p style="text-align:center;">異常はありません。</p>';
+                sec.classList.add('hidden');
+            }
+        }
+
+        // 最初からやり直す
+        function restartApp() {
+            if(confirm("最初からやり直しますか？")) {
+                currentIndex = 0;
+                ngItems = [];
+                document.getElementById('card-area').classList.remove('hidden');
+                document.getElementById('app-header').classList.remove('hidden');
+                document.getElementById('action-buttons').classList.remove('hidden');
+                document.getElementById('result-area').classList.add('hidden');
+                render();
+            }
+        }
+
+        // フッター高さ調整
+        function adjustLayout() {
+            var f = document.getElementById('action-buttons');
+            var m = document.getElementById('main-content');
+            if(f && m) {
+                m.style.bottom = f.offsetHeight + 'px';
+            }
+        }
+        
+        window.onload = function() {
+            adjustLayout();
+        };
+        window.onresize = adjustLayout;
+
     </script>
 </body>
 </html>
